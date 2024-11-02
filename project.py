@@ -1,3 +1,4 @@
+# I was unable to push my dataset on Github due to size of Dataset
 import os
 import shutil
 import numpy as np
@@ -11,16 +12,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-# Paths
 base_dir = '/home/aryan-dhanuka/SML_Lab/Project/chest_xray'
 train_dir = os.path.join(base_dir, 'train')
 val_dir = os.path.join(base_dir, 'val')
 
-# Create validation directory if it does not exist
 if not os.path.exists(val_dir):
     os.makedirs(val_dir)
 
-# List all classes
 classes = os.listdir(train_dir)
 
 for cls in classes:
@@ -36,7 +34,6 @@ for cls in classes:
     for img in val_images:
         shutil.move(os.path.join(cls_train_dir, img), os.path.join(cls_val_dir, img))
 
-# Data Augmentation and Preprocessing
 datagen = ImageDataGenerator(
     rescale=1./255,
     rotation_range=20,
@@ -62,7 +59,6 @@ validation_generator = datagen.flow_from_directory(
     class_mode='binary'
 )
 
-# CNN Model
 def build_cnn_model():
     model = Sequential([
         Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
@@ -91,8 +87,6 @@ history = cnn_model.fit(
 cnn_accuracy = history.history['val_accuracy'][-1]
 print(f"CNN Validation Accuracy: {cnn_accuracy * 100:.2f}%")
 
-# Random Forest Model
-# Load and preprocess data for Random Forest
 
 def load_image_data(image_dir, target_size=(150, 150)):
     images = []
@@ -113,19 +107,15 @@ def load_image_data(image_dir, target_size=(150, 150)):
     
     return np.array(images, dtype=np.float32), np.array(labels, dtype=np.int32), class_names
 
-# Load training and validation data
 X_train, y_train, _ = load_image_data(train_dir)
 X_val, y_val, _ = load_image_data(val_dir)
 
-# Train Random Forest
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 rf_model.fit(X_train, y_train)
 
-# Evaluate Random Forest
 y_pred = rf_model.predict(X_val)
 rf_accuracy = accuracy_score(y_val, y_pred)
 print(f"Random Forest Accuracy: {rf_accuracy * 100:.2f}%")
 
-#  pickle the machine learning model 
 import pickle
 pickle.dump(rf_model, open("model.pkl", 'wb'))
